@@ -90,6 +90,8 @@ function HeroDetails({ activeProductIndex }) {
             const isMobile = window.matchMedia('(max-width: 767px)').matches
 
             // ===== INITIAL STATES =====
+            if (!productRef.current || !titleRef.current) return
+
             gsap.set(productRef.current, {
                 top: '50%',
                 left: '50%',
@@ -132,18 +134,18 @@ function HeroDetails({ activeProductIndex }) {
                 })
             })
 
-            gsap.set(strapDescRef.current, { y: '100%', opacity: 0 })
+            if (strapDescRef.current) gsap.set(strapDescRef.current, { y: '100%', opacity: 0 })
 
-            gsap.set(varDescRef.current, { y: '100%', opacity: 0, position: 'absolute' })
+            if (varDescRef.current) gsap.set(varDescRef.current, { y: '100%', opacity: 0, position: 'absolute' })
 
-            gsap.set(varWrapperRef.current, {
+            if (varWrapperRef.current) gsap.set(varWrapperRef.current, {
                 opacity: 1,
                 x: 0,
                 y: 0,
                 scale: 1
             })
 
-            if (product.id === 2) {
+            if (product.id === 2 && singleVariationRef.current) {
                 gsap.set(singleVariationRef.current, {
                     position: 'absolute',
                     top: '50%',
@@ -154,7 +156,7 @@ function HeroDetails({ activeProductIndex }) {
                     opacity: 0,
                     scale: 1
                 })
-            } else {
+            } else if (varRefs.current.filter(Boolean).length > 0) {
                 gsap.set(varRefs.current.filter(Boolean), {
                     position: 'absolute',
                     top: '50%',

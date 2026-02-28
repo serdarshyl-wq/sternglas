@@ -19,6 +19,8 @@ function LoadingScreen() {
         const rightImg = rightImgRef.current
         const text = textRef.current
 
+        if (!leftImg || !rightImg || !text) return
+
         // Başlangıç pozisyonları: ürünler merkeze yakın
         gsap.set(leftImg, { x: '-8vw' })
         gsap.set(rightImg, { x: '8vw' })
