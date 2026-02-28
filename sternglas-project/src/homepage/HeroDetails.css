@@ -1,0 +1,85 @@
+@layer components {
+
+    .hero-details__product,
+    .hero-details__title,
+    .hero-details__german-award,
+    .hero-details__strap,
+    .hero-details__variation,
+    .hero-details__desc {
+        will-change: transform, opacity;
+    }
+
+    .hero-video-play-btn:hover {
+        background: rgba(0, 0, 0, 0.8);
+        transition: background 0.3s ease;
+    }
+
+    .hero-video-logo {
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .hero-video-logo:hover {
+        opacity: 1;
+    }
+
+    .hero-details__desc-phase3 {
+        padding-bottom: 20px;
+    }
+}
+
+.hero-details__desc-phase3 {
+    font-size: clamp(3.5rem, 14vw, 5rem);
+}
+
+@media (max-width: 767px) {
+    .hero-details-section {
+        height: 600vh !important;
+    }
+
+    .hero-details__product img {
+        max-height: 80vh !important;
+        max-width: 90vw !important;
+    }
+
+    .hero-details__desc-phase3 {
+        font-size: clamp(4.5rem, 18vw, 6rem) !important;
+        padding-bottom: 20px;
+    }
+
+    .hero-details__strap img,
+    .hero-details__variation img {
+        max-height: 80vh !important;
+        max-width: 90vw !important;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1280px) {
+
+    .hero-details__desc-phase2 {
+        font-size: clamp(4rem, 12vw, 5.5rem) !important;
+        margin-bottom: 10vh !important;
+    }
+
+    .hero-details-section .hero-details__desc-phase3 {
+        font-size: clamp(4rem, 11vw, 15rem) !important;
+        margin-bottom: 0 !important;
+    }
+
+    .hero-video-section {
+        justify-content: flex-start !important;
+        padding-top: 8vh !important;
+    }
+
+    .hero-video-section h2 {
+        font-size: clamp(3rem, 6vw, 5rem) !important;
+    }
+
+    .hero-video-container {
+        width: clamp(70vw, 80vw, 85vw) !important;
+        max-width: none !important;
+    }
+
+    .hero-video-logo {
+        height: clamp(35px, 6vw, 70px) !important;
+    }
+}

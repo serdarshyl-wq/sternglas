@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400..800&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Manrope:wght@200..800&family=Outfit:wght@100..900&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  --font-heading: 'Syne', sans-serif;
+  --font-body: 'Montserrat', sans-serif;
+  --font-ui: 'Manrope', sans-serif;
+  --font-logo: 'Outfit', sans-serif;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: #ffffff;
+  }
+}

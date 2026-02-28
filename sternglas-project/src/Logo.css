@@ -1,0 +1,9 @@
+@layer components {
+  .logo-title {
+    color: #ffffff;
+  }
+
+  .logo-subtitle {
+    color: rgba(255, 255, 255, 0.7);
+  }
+}
