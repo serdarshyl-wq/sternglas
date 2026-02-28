@@ -30,13 +30,19 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
     const next = heroProducts[(currentIndex + 1) % heroProducts.length]
     const afterNext = heroProducts[(currentIndex + 2) % heroProducts.length]
 
-    // Her index değişiminde pozisyonları sıfırla
-    useLayoutEffect(() => {
-        if (!img1Ref.current || !img2Ref.current || !img3Ref.current) return
+    // DOM üzerinden img src + pozisyon sıfırlama (React render'dan bağımsız, flash önler)
+    const resetPositions = (newIndex) => {
+        const newCurrent = heroProducts[newIndex]
+        const newNext = heroProducts[(newIndex + 1) % heroProducts.length]
+        const newAfterNext = heroProducts[(newIndex + 2) % heroProducts.length]
 
-        // Önceki animasyonların kalıntı stillerini temizle
-        gsap.killTweensOf([img1Ref.current, img2Ref.current, img3Ref.current])
-        gsap.set([img1Ref.current, img2Ref.current, img3Ref.current], { clearProps: 'left,xPercent,scale,x' })
+        // Görselleri DOM üzerinden güncelle (React render beklemeden)
+        const img1El = img1Ref.current?.querySelector('img')
+        const img2El = img2Ref.current?.querySelector('img')
+        const img3El = img3Ref.current?.querySelector('img')
+        if (img1El) img1El.src = newCurrent.image
+        if (img2El) img2El.src = newNext.image
+        if (img3El) img3El.src = newAfterNext.image
 
         const isMobile = window.matchMedia('(max-width: 767px)').matches
         const isTablet = window.matchMedia('(min-width: 768px) and (max-width: 1280px)').matches
@@ -53,6 +59,13 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
             gsap.set(img2Ref.current, { left: '80%', xPercent: -50, scale: 0.65, opacity: 1 })
             gsap.set(img3Ref.current, { left: '110%', xPercent: -50, scale: 0.65, opacity: 1 })
         }
+    }
+
+    // Her index değişiminde pozisyonları sıfırla
+    useLayoutEffect(() => {
+        if (!img1Ref.current || !img2Ref.current || !img3Ref.current) return
+        gsap.killTweensOf([img1Ref.current, img2Ref.current, img3Ref.current])
+        resetPositions(currentIndex)
         if (contentRef.current) gsap.set(contentRef.current, { x: 0, opacity: 1 })
         if (priceRef.current) gsap.set(priceRef.current, { x: 0, opacity: 1 })
         if (mobilePriceRef.current) gsap.set(mobilePriceRef.current, { x: 0, opacity: 1 })
@@ -112,8 +125,9 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
 
         const tl = gsap.timeline({
             onComplete: () => {
+                // Önce DOM'u sıfırla (flash önleme), sonra React state güncelle
+                resetPositions(nextIdx)
                 setCurrentIndex(nextIdx)
-                // 1.5 saniye cooldown — render alması için
                 cooldownRef.current = setTimeout(() => {
                     animatingRef.current = false
                     cooldownRef.current = null
@@ -199,8 +213,9 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
 
         const tl = gsap.timeline({
             onComplete: () => {
+                // Önce DOM'u sıfırla (flash önleme), sonra React state güncelle
+                resetPositions(prevIdx)
                 setCurrentIndex(prevIdx)
-                // 1.5 saniye cooldown — render alması için
                 cooldownRef.current = setTimeout(() => {
                     animatingRef.current = false
                     cooldownRef.current = null

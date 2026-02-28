@@ -1,4 +1,4 @@
-import { useRef, useLayoutEffect, useState, useEffect } from 'react'
+import { useRef, useLayoutEffect, useState, useEffect, useMemo } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { Draggable } from 'gsap/all'
@@ -24,14 +24,26 @@ function HeroDetails({ activeProductIndex }) {
     const varRefs = useRef([])
     const singleVariationRef = useRef(null)
 
-    const [loopVariations, setLoopVariations] = useState([])
-
     const videoRef = useRef(null)
     const videoSectionRef = useRef(null)
     const [isPlaying, setIsPlaying] = useState(false)
 
     const product = heroProducts[activeProductIndex]
     const details = productDetails.find(d => d.id === product.id)
+
+    // Varyasyonları sonsuz döngü için çoğalt (senkron — çift render önlenir)
+    const loopVariations = useMemo(() => {
+        if (!details?.variations) return []
+        if (details.variations.length === 1) return [...details.variations]
+        return [
+            ...details.variations,
+            ...details.variations,
+            ...details.variations,
+            ...details.variations,
+            ...details.variations,
+            ...details.variations
+        ]
+    }, [details])
 
     // Viewport Auto-Play
     useEffect(() => {
@@ -53,25 +65,6 @@ function HeroDetails({ activeProductIndex }) {
         observer.observe(videoElement);
 
         return () => observer.disconnect();
-    }, [details])
-
-    // Varyasyonları sonsuz döngü için çoğalt
-    useEffect(() => {
-        if (details?.variations) {
-            if (details.variations.length === 1) {
-                // Tek bir varyasyon varsa klonlamaya ve loop'a gerek yok
-                setLoopVariations([...details.variations])
-            } else {
-                setLoopVariations([
-                    ...details.variations,
-                    ...details.variations,
-                    ...details.variations,
-                    ...details.variations,
-                    ...details.variations,
-                    ...details.variations
-                ])
-            }
-        }
     }, [details])
 
     useLayoutEffect(() => {
