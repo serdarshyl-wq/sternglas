@@ -56,7 +56,10 @@ function App() {
         })
       })
 
-      Promise.all([...allImages, ...heroImgs]).then(() => {
+      // Minimum 1.5 saniye loading göster
+      const minDelay = new Promise(resolve => setTimeout(resolve, 1500))
+
+      Promise.all([...allImages, ...heroImgs, minDelay]).then(() => {
         sessionStorage.setItem('visited', '1')
         setIsLoading(false)
       })
