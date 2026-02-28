@@ -24,7 +24,7 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
     const mobilePriceRef = useRef(null)
     const scrollCtxRef = useRef(null)
     const animatingRef = useRef(false)
-    const activeTimelineRef = useRef(null)
+    const cooldownRef = useRef(null)
 
     const current = heroProducts[currentIndex]
     const next = heroProducts[(currentIndex + 1) % heroProducts.length]
@@ -97,11 +97,7 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
     }, [currentIndex])
 
     const goToNext = () => {
-        // Önceki animasyon devam ediyorsa anında bitir
-        if (activeTimelineRef.current) {
-            activeTimelineRef.current.progress(1).kill()
-            activeTimelineRef.current = null
-        }
+        if (animatingRef.current) return
         animatingRef.current = true
 
         const nextIdx = (currentIndex + 1) % heroProducts.length
@@ -112,12 +108,14 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
 
         const tl = gsap.timeline({
             onComplete: () => {
-                activeTimelineRef.current = null
                 setCurrentIndex(nextIdx)
-                animatingRef.current = false
+                // 1.5 saniye cooldown — render alması için
+                cooldownRef.current = setTimeout(() => {
+                    animatingRef.current = false
+                    cooldownRef.current = null
+                }, 1500)
             }
         })
-        activeTimelineRef.current = tl
 
         if (isMobile) {
             tl.fromTo(img1Ref.current,
@@ -186,11 +184,7 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
     }
 
     const goToPrev = () => {
-        // Önceki animasyon devam ediyorsa anında bitir
-        if (activeTimelineRef.current) {
-            activeTimelineRef.current.progress(1).kill()
-            activeTimelineRef.current = null
-        }
+        if (animatingRef.current) return
         animatingRef.current = true
 
         const prevIdx = (currentIndex - 1 + heroProducts.length) % heroProducts.length
@@ -201,12 +195,14 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
 
         const tl = gsap.timeline({
             onComplete: () => {
-                activeTimelineRef.current = null
                 setCurrentIndex(prevIdx)
-                animatingRef.current = false
+                // 1.5 saniye cooldown — render alması için
+                cooldownRef.current = setTimeout(() => {
+                    animatingRef.current = false
+                    cooldownRef.current = null
+                }, 1500)
             }
         })
-        activeTimelineRef.current = tl
 
         if (isMobile) {
             const img2El = img2Ref.current.querySelector('img')

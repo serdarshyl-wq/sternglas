@@ -12,16 +12,17 @@ export default defineConfig({
       include: ['src/**/*.jsx', 'src/**/*.js'],
       exclude: [/node_modules/],
       apply: 'build',
-      debugger: true,
       options: {
         compact: true,
         controlFlowFlattening: true,
         controlFlowFlatteningThreshold: 0.75,
         numbersToExpressions: true,
         simplify: true,
-        stringArrayShuffle: true,
-        splitStrings: true,
-        stringArrayThreshold: 0.75
+        // Tailwind class string'lerini bozmamak için kapalı
+        stringArray: false,
+        splitStrings: false,
+        stringArrayShuffle: false,
+        stringArrayThreshold: 0
       }
     })
   ],
