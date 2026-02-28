@@ -1,9 +1,7 @@
-@layer components {
-  .logo-title {
+.logo-title {
     color: #ffffff;
-  }
+}
 
-  .logo-subtitle {
+.logo-subtitle {
     color: rgba(255, 255, 255, 0.7);
-  }
 }

@@ -1,28 +1,25 @@
-@layer components {
+.hero-shape-left {
+    border-radius: 0 50% 50% 0;
+}
 
-    .hero-shape-left {
-        border-radius: 0 50% 50% 0;
-    }
+.hero-shape-right {
+    border-radius: 50% 0 0 50%;
+}
 
-    .hero-shape-right {
-        border-radius: 50% 0 0 50%;
-    }
+.hero-product-img {
+    max-height: 75%;
+}
 
-    .hero-product-img {
-        max-height: 75%;
-    }
+.hero-arrow-btn {
+    display: none;
+}
 
-    .hero-arrow-btn {
-        display: none;
-    }
+.hero-mobile-price {
+    display: none;
+}
 
-    .hero-mobile-price {
-        display: none;
-    }
-
-    .hero-prev-text {
-        display: none;
-    }
+.hero-prev-text {
+    display: none;
 }
 
 @media (max-width: 767px) {

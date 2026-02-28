@@ -34,6 +34,10 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
     useLayoutEffect(() => {
         if (!img1Ref.current || !img2Ref.current || !img3Ref.current) return
 
+        // Önceki animasyonların kalıntı stillerini temizle
+        gsap.killTweensOf([img1Ref.current, img2Ref.current, img3Ref.current])
+        gsap.set([img1Ref.current, img2Ref.current, img3Ref.current], { clearProps: 'left,xPercent,scale,opacity,x' })
+
         const isMobile = window.matchMedia('(max-width: 767px)').matches
         const isTablet = window.matchMedia('(min-width: 768px) and (max-width: 1280px)').matches
         if (isMobile) {

@@ -1,33 +1,27 @@
-@layer components {
+.hero-details__product,
+.hero-details__title,
+.hero-details__german-award,
+.hero-details__strap,
+.hero-details__variation,
+.hero-details__desc {
+    will-change: transform, opacity;
+}
 
-    .hero-details__product,
-    .hero-details__title,
-    .hero-details__german-award,
-    .hero-details__strap,
-    .hero-details__variation,
-    .hero-details__desc {
-        will-change: transform, opacity;
-    }
+.hero-video-play-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+    transition: background 0.3s ease;
+}
 
-    .hero-video-play-btn:hover {
-        background: rgba(0, 0, 0, 0.8);
-        transition: background 0.3s ease;
-    }
+.hero-video-logo {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
 
-    .hero-video-logo {
-        transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-
-    .hero-video-logo:hover {
-        opacity: 1;
-    }
-
-    .hero-details__desc-phase3 {
-        padding-bottom: 20px;
-    }
+.hero-video-logo:hover {
+    opacity: 1;
 }
 
 .hero-details__desc-phase3 {
+    padding-bottom: 20px;
     font-size: clamp(3.5rem, 14vw, 5rem);
 }
 
