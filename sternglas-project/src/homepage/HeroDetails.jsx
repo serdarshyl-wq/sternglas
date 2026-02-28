@@ -393,8 +393,19 @@ function HeroDetails({ activeProductIndex }) {
                     ease: 'power2.out'
                 }, 'phase3_variations')
 
-                if (singleVariationRef.current) {
-                    masterTl.fromTo(singleVariationRef.current,
+                const singleVarEl = singleVariationRef.current || sectionRef.current?.querySelector('.hero-details__variation')
+                if (singleVarEl) {
+                    gsap.set(singleVarEl, {
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        x: '0vw',
+                        yPercent: -50,
+                        xPercent: -50,
+                        opacity: 0,
+                        scale: 1
+                    })
+                    masterTl.fromTo(singleVarEl,
                         { x: '0vw', y: isMobileVar ? '-6vh' : '0vh' },
                         {
                             x: displacement,
