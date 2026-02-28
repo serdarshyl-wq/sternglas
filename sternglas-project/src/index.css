@@ -10,6 +10,7 @@
 }
 
 @layer base {
+
   *,
   *::before,
   *::after {
@@ -21,5 +22,23 @@
   body {
     font-family: var(--font-body);
     background-color: #ffffff;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in-down {
+    animation: fadeInDown 0.3s ease-out forwards;
+  }
+
+  @keyframes fadeInDown {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -20px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
   }
 }

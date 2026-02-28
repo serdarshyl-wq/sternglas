@@ -5,7 +5,7 @@ import { faInstagram, faFacebookF, faPinterestP, faYoutube } from '@fortawesome/
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import Logo from '../Logo';
 
-function Footer() {
+function Footer({ onConceptClick }) {
     const [openSections, setOpenSections] = useState({});
 
     const toggleSection = (sectionIndex) => {
@@ -39,13 +39,13 @@ function Footer() {
                         </h3>
                         <div className={`footer-accordion-content ${openSections[1] ? 'is-open' : ''}`}>
                             <ul className="footer-list">
-                                <li><a href="#" className="footer-link">All Watches</a></li>
-                                <li><a href="#" className="footer-link">Men's Watches</a></li>
-                                <li><a href="#" className="footer-link">Women's Watches</a></li>
-                                <li><a href="#" className="footer-link">Automatic Watches</a></li>
-                                <li><a href="#" className="footer-link">Quartz Watches</a></li>
-                                <li><a href="#" className="footer-link">Wall Clocks</a></li>
-                                <li><a href="#" className="footer-link">Watch Straps</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">All Watches</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">Men's Watches</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">Women's Watches</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">Automatic Watches</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">Quartz Watches</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">Wall Clocks</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">Watch Straps</a></li>
                             </ul>
                         </div>
                     </div>
@@ -62,12 +62,12 @@ function Footer() {
                         </h3>
                         <div className={`footer-accordion-content ${openSections[2] ? 'is-open' : ''}`}>
                             <ul className="footer-list">
-                                <li><a href="#" className="footer-link">The Sternglas Story</a></li>
-                                <li><a href="#" className="footer-link">The Team</a></li>
-                                <li><a href="#" className="footer-link">Press</a></li>
-                                <li><a href="#" className="footer-link">Magazine</a></li>
-                                <li><a href="#" className="footer-link">Watch Archive</a></li>
-                                <li><a href="#" className="footer-link">Newsletter</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">The Sternglas Story</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">The Team</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">Press</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">Magazine</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">Watch Archive</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">Newsletter</a></li>
                             </ul>
                         </div>
                     </div>
@@ -84,14 +84,14 @@ function Footer() {
                         </h3>
                         <div className={`footer-accordion-content ${openSections[3] ? 'is-open' : ''}`}>
                             <ul className="footer-list">
-                                <li><a href="#" className="footer-link">Contact</a></li>
-                                <li><a href="#" className="footer-link">FAQ</a></li>
-                                <li><a href="#" className="footer-link">Repairs</a></li>
-                                <li><a href="#" className="footer-link">Retailer locator</a></li>
-                                <li><a href="#" className="footer-link">Retail inquiries</a></li>
-                                <li><a href="#" className="footer-link">Return Policy</a></li>
-                                <li><a href="#" className="footer-link">Shipping & Payment</a></li>
-                                <li><a href="#" className="footer-link">Accessibility</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">Contact</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">FAQ</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">Repairs</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">Retailer locator</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">Retail inquiries</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">Return Policy</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">Shipping & Payment</a></li>
+                                <li><a href="#" onClick={onConceptClick} className="footer-link">Accessibility</a></li>
                             </ul>
                         </div>
                     </div>
@@ -99,16 +99,16 @@ function Footer() {
 
                 <div className="footer-bottom">
                     <div className="footer-socials">
-                        <a href="#" className="social-icon instagram flex items-center justify-center w-10 h-10 text-[1.8rem] text-black no-underline rounded-full" aria-label="Instagram">
+                        <a href="#" onClick={onConceptClick} className="social-icon instagram flex items-center justify-center w-10 h-10 text-[1.8rem] text-black no-underline rounded-full" aria-label="Instagram">
                             <FontAwesomeIcon icon={faInstagram} />
                         </a>
-                        <a href="#" className="social-icon facebook flex items-center justify-center w-10 h-10 text-[1.8rem] text-black no-underline rounded-full" aria-label="Facebook">
+                        <a href="#" onClick={onConceptClick} className="social-icon facebook flex items-center justify-center w-10 h-10 text-[1.8rem] text-black no-underline rounded-full" aria-label="Facebook">
                             <FontAwesomeIcon icon={faFacebookF} />
                         </a>
-                        <a href="#" className="social-icon pinterest flex items-center justify-center w-10 h-10 text-[1.8rem] text-black no-underline rounded-full" aria-label="Pinterest">
+                        <a href="#" onClick={onConceptClick} className="social-icon pinterest flex items-center justify-center w-10 h-10 text-[1.8rem] text-black no-underline rounded-full" aria-label="Pinterest">
                             <FontAwesomeIcon icon={faPinterestP} />
                         </a>
-                        <a href="#" className="social-icon youtube flex items-center justify-center w-10 h-10 text-[1.8rem] text-black no-underline rounded-full" aria-label="YouTube">
+                        <a href="#" onClick={onConceptClick} className="social-icon youtube flex items-center justify-center w-10 h-10 text-[1.8rem] text-black no-underline rounded-full" aria-label="YouTube">
                             <FontAwesomeIcon icon={faYoutube} />
                         </a>
                     </div>
