@@ -47,24 +47,23 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         const isMobile = window.matchMedia('(max-width: 767px)').matches
         const isTablet = window.matchMedia('(min-width: 768px) and (max-width: 1280px)').matches
         if (isMobile) {
-            gsap.set(img1Ref.current, { left: '50%', xPercent: -50, scale: 1, opacity: 1 })
-            gsap.set(img2Ref.current, { left: '150%', xPercent: -50, scale: 1, opacity: 1 })
-            gsap.set(img3Ref.current, { left: '150%', xPercent: -50, scale: 1, opacity: 1 })
+            gsap.set(img1Ref.current, { left: '50%', x: 0, xPercent: -50, scale: 1, opacity: 1 })
+            gsap.set(img2Ref.current, { left: '150%', x: 0, xPercent: -50, scale: 1, opacity: 1 })
+            gsap.set(img3Ref.current, { left: '150%', x: 0, xPercent: -50, scale: 1, opacity: 1 })
         } else if (isTablet) {
-            gsap.set(img1Ref.current, { left: '50%', xPercent: -50, scale: 1, opacity: 1 })
-            gsap.set(img2Ref.current, { left: '85%', xPercent: -50, scale: 0.8, opacity: 1 })
-            gsap.set(img3Ref.current, { left: '115%', xPercent: -50, scale: 0.8, opacity: 1 })
+            gsap.set(img1Ref.current, { left: '50%', x: 0, xPercent: -50, scale: 1, opacity: 1 })
+            gsap.set(img2Ref.current, { left: '85%', x: 0, xPercent: -50, scale: 0.8, opacity: 1 })
+            gsap.set(img3Ref.current, { left: '115%', x: 0, xPercent: -50, scale: 0.8, opacity: 1 })
         } else {
-            gsap.set(img1Ref.current, { left: '50%', xPercent: -50, scale: 1, opacity: 1 })
-            gsap.set(img2Ref.current, { left: '80%', xPercent: -50, scale: 0.65, opacity: 1 })
-            gsap.set(img3Ref.current, { left: '110%', xPercent: -50, scale: 0.65, opacity: 1 })
+            gsap.set(img1Ref.current, { left: '50%', x: 0, xPercent: -50, scale: 1, opacity: 1 })
+            gsap.set(img2Ref.current, { left: '80%', x: 0, xPercent: -50, scale: 0.65, opacity: 1 })
+            gsap.set(img3Ref.current, { left: '110%', x: 0, xPercent: -50, scale: 0.65, opacity: 1 })
         }
     }
 
     // Her index değişiminde pozisyonları sıfırla
     useLayoutEffect(() => {
         if (!img1Ref.current || !img2Ref.current || !img3Ref.current) return
-        gsap.killTweensOf([img1Ref.current, img2Ref.current, img3Ref.current])
         resetPositions(currentIndex)
         if (contentRef.current) gsap.set(contentRef.current, { x: 0, opacity: 1 })
         if (priceRef.current) gsap.set(priceRef.current, { x: 0, opacity: 1 })
@@ -116,6 +115,7 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
     const goToNext = () => {
         if (animatingRef.current) return
         animatingRef.current = true
+        document.body.style.overflow = 'hidden'
 
         const nextIdx = (currentIndex + 1) % heroProducts.length
         const isMobile = window.matchMedia('(max-width: 767px)').matches
@@ -125,7 +125,7 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
 
         const tl = gsap.timeline({
             onComplete: () => {
-                // Önce DOM'u sıfırla (flash önleme), sonra React state güncelle
+                document.body.style.overflow = ''
                 resetPositions(nextIdx)
                 setCurrentIndex(nextIdx)
                 cooldownRef.current = setTimeout(() => {
@@ -204,6 +204,7 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
     const goToPrev = () => {
         if (animatingRef.current) return
         animatingRef.current = true
+        document.body.style.overflow = 'hidden'
 
         const prevIdx = (currentIndex - 1 + heroProducts.length) % heroProducts.length
         const isMobile = window.matchMedia('(max-width: 767px)').matches
@@ -213,7 +214,7 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
 
         const tl = gsap.timeline({
             onComplete: () => {
-                // Önce DOM'u sıfırla (flash önleme), sonra React state güncelle
+                document.body.style.overflow = ''
                 resetPositions(prevIdx)
                 setCurrentIndex(prevIdx)
                 cooldownRef.current = setTimeout(() => {
