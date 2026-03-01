@@ -143,13 +143,29 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
     // Geçiş tamamlandığında çağrılır
     const finishTransition = (newIdx) => {
         unlockScroll()
-        // Tüm pozisyonları snap (GSAP inline artıklarını temizle)
-        snapAllPositions(newIdx)
         indexRef.current = newIdx
+
+        // Önce ScrollTrigger kur (sadece center element'i pin'ler)
+        setupScrollTrigger(newIdx)
+
+        // Sonra tüm pozisyonları snap — ScrollTrigger'ın olası stil müdahalesini ezecek
+        snapAllPositions(newIdx)
+
+        // State güncelle
         animatingRef.current = false
         setDisplayIndex(newIdx)
         setActiveProductIndex(newIdx)
-        setupScrollTrigger(newIdx)
+
+        // React re-render sonrası güvenlik: pozisyonları tekrar uygula
+        requestAnimationFrame(() => {
+            heroProducts.forEach((_, i) => {
+                if (i === newIdx) return // Pinli merkez element'e dokunma
+                const el = productRefs.current[i]
+                if (!el) return
+                const props = getTargetProps(i, newIdx, getDevice())
+                gsap.set(el, { ...props, x: 0 })
+            })
+        })
     }
 
     // ====== NEXT ======
