@@ -77,8 +77,8 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
     // Pozisyon sıfırlama + ScrollTrigger kurulumu (tek useLayoutEffect)
     useLayoutEffect(() => {
         if (!img1Ref.current || !img2Ref.current || !img3Ref.current) return
-        // Animasyon devam ediyorsa pozisyonları sıfırlama — onComplete halledecek
-        if (animatingRef.current) return
+        // Animasyon devam ediyorsa veya React eski state'i işliyorsa atla
+        if (animatingRef.current || activeProductIndex !== indexRef.current) return
 
         resetPositions(activeProductIndex)
         if (contentRef.current) gsap.set(contentRef.current, { x: 0, opacity: 1 })
