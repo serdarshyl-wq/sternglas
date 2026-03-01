@@ -24,11 +24,8 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
     const mobilePriceRef = useRef(null)
     const scrollCtxRef = useRef(null)
     const animatingRef = useRef(false)
-    const cooldownRef = useRef(null)
 
     const current = heroProducts[currentIndex]
-    const next = heroProducts[(currentIndex + 1) % heroProducts.length]
-    const afterNext = heroProducts[(currentIndex + 2) % heroProducts.length]
 
     // DOM üzerinden img src + pozisyon sıfırlama (React render'dan bağımsız, flash önler)
     const resetPositions = (newIndex) => {
@@ -316,7 +313,7 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
                 className="hero-img-container absolute top-0 h-full flex items-center justify-center"
                 style={{ zIndex: 5 }}
             >
-                <img src={current.image} alt={current.title} className="hero-product-img object-contain cursor-pointer" />
+                <img alt="current product" className="hero-product-img object-contain cursor-pointer" />
             </div>
 
             <div
@@ -325,8 +322,7 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
                 style={{ zIndex: 30 }}
             >
                 <img
-                    src={next.image}
-                    alt={next.title}
+                    alt="next product"
                     className="hero-product-img object-contain cursor-pointer pointer-events-auto"
                     onClick={goToNext}
                 />
@@ -337,7 +333,7 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
                 className="hero-img-container absolute top-0 h-full flex items-center justify-center pointer-events-none"
                 style={{ zIndex: 30 }}
             >
-                <img src={afterNext.image} alt={afterNext.title} className="hero-product-img object-contain cursor-pointer pointer-events-auto" />
+                <img alt="upcoming product" className="hero-product-img object-contain cursor-pointer pointer-events-auto" />
             </div>
 
             <div className="hero-panel-left absolute left-0 top-0 h-full w-[40%] bg-white hero-shape-left" style={{ zIndex: 20 }}>
