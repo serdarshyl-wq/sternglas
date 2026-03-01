@@ -12,7 +12,6 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
     const setCurrentIndex = setActiveProductIndex
     const [displayIndex, setDisplayIndex] = useState(0)
     const indexRef = useRef(activeProductIndex)
-    indexRef.current = activeProductIndex
 
     const sectionRef = useRef(null)
     const img1Ref = useRef(null)
