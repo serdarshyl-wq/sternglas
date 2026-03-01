@@ -12,6 +12,8 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
     const currentIndex = activeProductIndex
     const setCurrentIndex = setActiveProductIndex
     const [displayIndex, setDisplayIndex] = useState(0)
+    const indexRef = useRef(currentIndex)
+    indexRef.current = currentIndex
 
     const sectionRef = useRef(null)
     const img1Ref = useRef(null)
@@ -24,6 +26,23 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
     const mobilePriceRef = useRef(null)
     const scrollCtxRef = useRef(null)
     const animatingRef = useRef(false)
+    const scrollLockY = useRef(0)
+
+    const lockScroll = () => {
+        scrollLockY.current = window.scrollY
+        document.body.style.position = 'fixed'
+        document.body.style.top = `-${scrollLockY.current}px`
+        document.body.style.left = '0'
+        document.body.style.right = '0'
+    }
+
+    const unlockScroll = () => {
+        document.body.style.position = ''
+        document.body.style.top = ''
+        document.body.style.left = ''
+        document.body.style.right = ''
+        window.scrollTo(0, scrollLockY.current)
+    }
 
     const current = heroProducts[currentIndex]
 
@@ -112,9 +131,9 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
     const goToNext = () => {
         if (animatingRef.current) return
         animatingRef.current = true
-        document.body.style.overflow = 'hidden'
+        lockScroll()
 
-        const nextIdx = (currentIndex + 1) % heroProducts.length
+        const nextIdx = (indexRef.current + 1) % heroProducts.length
         const isMobile = window.matchMedia('(max-width: 767px)').matches
         const isTabletNext = window.matchMedia('(min-width: 768px) and (max-width: 1280px)').matches
         const nextScale = isTabletNext ? 0.8 : 0.65
@@ -122,8 +141,9 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
 
         const tl = gsap.timeline({
             onComplete: () => {
-                document.body.style.overflow = ''
+                unlockScroll()
                 resetPositions(nextIdx)
+                indexRef.current = nextIdx
                 setCurrentIndex(nextIdx)
                 animatingRef.current = false
             }
@@ -198,9 +218,9 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
     const goToPrev = () => {
         if (animatingRef.current) return
         animatingRef.current = true
-        document.body.style.overflow = 'hidden'
+        lockScroll()
 
-        const prevIdx = (currentIndex - 1 + heroProducts.length) % heroProducts.length
+        const prevIdx = (indexRef.current - 1 + heroProducts.length) % heroProducts.length
         const isMobile = window.matchMedia('(max-width: 767px)').matches
         const isTabletPrev = window.matchMedia('(min-width: 768px) and (max-width: 1280px)').matches
         const prevScale = isTabletPrev ? 0.8 : 0.65
@@ -208,7 +228,7 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
 
         const tl = gsap.timeline({
             onComplete: () => {
-                document.body.style.overflow = ''
+                unlockScroll()
 
                 if (!isMobile) {
                     // img3 şu an merkeze gelmiş durumda (prev ürün görseli ile).
@@ -222,6 +242,7 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
                 }
 
                 resetPositions(prevIdx)
+                indexRef.current = prevIdx
                 setCurrentIndex(prevIdx)
                 animatingRef.current = false
             }
