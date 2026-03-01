@@ -157,11 +157,9 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         unlockScroll()
         indexRef.current = newIdx
 
-        // Merkez element zaten animasyondan doğru pozisyonda — ona dokunma
         // Sadece diğer elementleri snap'le
         snapNonCenter(newIdx)
 
-        // ScrollTrigger'u kur (merkez elementi pin'ler)
         setupScrollTrigger(newIdx)
 
         // State güncelle
@@ -182,7 +180,6 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         const nextIdx = (indexRef.current + 1) % TOTAL
         const device = getDevice()
 
-        // Animasyon öncesi ScrollTrigger'ı kaldır ve pin kalıntılarını temizle
         killScrollTrigger()
         const curEl = productRefs.current[indexRef.current]
         if (curEl) {
@@ -217,7 +214,6 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
             duration: device === 'mobile' ? 0.6 : 0.8, ease: 'power2.inOut'
         }, 0)
 
-        // Metin animasyonu
         const dur = device === 'mobile' ? 0.3 : 0.4
         const dist = device === 'mobile' ? 100 : 120
 
@@ -294,13 +290,10 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
             tl.to(el, { left: target.left, scale: target.scale, zIndex: target.zIndex, duration: imgDur, ease: 'power2.inOut' }, 0)
         })
 
-        // Arka plan
         tl.to(bgRef.current, {
             backgroundColor: heroProducts[prevIdx].leatherColor,
             duration: device === 'mobile' ? 0.6 : 0.8, ease: 'power2.inOut'
         }, 0)
-
-        // Metin animasyonu
         const dur = device === 'mobile' ? 0.3 : 0.4
         const dist = device === 'mobile' ? 100 : 120
 
