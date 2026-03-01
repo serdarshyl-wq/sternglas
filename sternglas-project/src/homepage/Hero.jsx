@@ -24,6 +24,19 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
     const scrollCtxRef = useRef(null)
     const animatingRef = useRef(false)
     const scrollLockY = useRef(0)
+    const preloadedImages = useRef(new Set())
+
+    // Tüm hero ürün görsellerini önceden yükle (deploy'da gecikmeyi önler)
+    useLayoutEffect(() => {
+        heroProducts.forEach(product => {
+            if (!preloadedImages.current.has(product.image)) {
+                const img = new Image()
+                img.src = product.image
+                img.onload = () => preloadedImages.current.add(product.image)
+                if (img.complete) preloadedImages.current.add(product.image)
+            }
+        })
+    }, [])
 
     const lockScroll = () => {
         scrollLockY.current = window.scrollY
@@ -137,13 +150,21 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         const nextScale = isTabletNext ? 0.8 : 0.65
         const nextLeft = isTabletNext ? '85%' : '80%'
 
+        // Sonraki turda lazım olacak görseli şimdiden yükle
+        const afterNextIdx = (nextIdx + 2) % heroProducts.length
+        const preImg = new Image()
+        preImg.src = heroProducts[afterNextIdx].image
+
         const tl = gsap.timeline({
             onComplete: () => {
                 unlockScroll()
                 indexRef.current = nextIdx
-                resetPositions(nextIdx)
-                animatingRef.current = false
-                setCurrentIndex(nextIdx)
+                // rAF ile browser'ın src değişikliklerini paint etmesini bekle
+                requestAnimationFrame(() => {
+                    resetPositions(nextIdx)
+                    animatingRef.current = false
+                    setCurrentIndex(nextIdx)
+                })
             }
         })
 
@@ -158,6 +179,13 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
                 { left: '50%', duration: 0.6, ease: 'power2.inOut' },
                 0
             )
+            // img1 ekrandan çıkarken yeni src'yi yükle (resetPositions'dan önce hazır olsun)
+            tl.call(() => {
+                const img1El = img1Ref.current?.querySelector('img')
+                if (img1El) img1El.src = heroProducts[nextIdx].image
+                const img3El = img3Ref.current?.querySelector('img')
+                if (img3El) img3El.src = heroProducts[(nextIdx + 2) % heroProducts.length].image
+            }, [], 0.3)
         } else {
             tl.fromTo(img1Ref.current,
                 { left: '50%', scale: 1 },
@@ -170,6 +198,13 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
             tl.to(img3Ref.current, {
                 left: nextLeft, scale: nextScale, duration: 0.8, ease: 'power2.inOut'
             }, 0)
+            // img1 kenara kayarken yeni src'yi yükle (resetPositions'dan önce hazır olsun)
+            tl.call(() => {
+                const img1El = img1Ref.current?.querySelector('img')
+                if (img1El) img1El.src = heroProducts[nextIdx].image
+                const img3El = img3Ref.current?.querySelector('img')
+                if (img3El) img3El.src = heroProducts[(nextIdx + 2) % heroProducts.length].image
+            }, [], 0.4)
         }
 
         tl.to(bgRef.current, {
@@ -228,9 +263,11 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
             onComplete: () => {
                 unlockScroll()
                 indexRef.current = prevIdx
-                resetPositions(prevIdx)
-                animatingRef.current = false
-                setCurrentIndex(prevIdx)
+                requestAnimationFrame(() => {
+                    resetPositions(prevIdx)
+                    animatingRef.current = false
+                    setCurrentIndex(prevIdx)
+                })
             }
         })
 
