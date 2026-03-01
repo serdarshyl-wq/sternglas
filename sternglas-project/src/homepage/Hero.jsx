@@ -128,10 +128,7 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
                 document.body.style.overflow = ''
                 resetPositions(nextIdx)
                 setCurrentIndex(nextIdx)
-                cooldownRef.current = setTimeout(() => {
-                    animatingRef.current = false
-                    cooldownRef.current = null
-                }, 1500)
+                animatingRef.current = false
             }
         })
 
@@ -217,10 +214,7 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
                 document.body.style.overflow = ''
                 resetPositions(prevIdx)
                 setCurrentIndex(prevIdx)
-                cooldownRef.current = setTimeout(() => {
-                    animatingRef.current = false
-                    cooldownRef.current = null
-                }, 1500)
+                animatingRef.current = false
             }
         })
 

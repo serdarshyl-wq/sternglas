@@ -131,12 +131,15 @@ function HeroDetails({ activeProductIndex }) {
 
             if (varDescRef.current) gsap.set(varDescRef.current, { y: '100%', opacity: 0, position: 'absolute' })
 
-            if (varWrapperRef.current) gsap.set(varWrapperRef.current, {
-                opacity: 1,
-                x: 0,
-                y: 0,
-                scale: 1
-            })
+            if (varWrapperRef.current) {
+                gsap.killTweensOf(varWrapperRef.current)
+                gsap.set(varWrapperRef.current, {
+                    opacity: 1,
+                    x: 0,
+                    y: 0,
+                    scale: 1
+                })
+            }
 
             if (product.id === 2 && singleVariationRef.current) {
                 gsap.set(singleVariationRef.current, {

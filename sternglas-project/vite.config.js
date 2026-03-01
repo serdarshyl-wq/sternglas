@@ -14,8 +14,7 @@ export default defineConfig({
       apply: 'build',
       options: {
         compact: true,
-        controlFlowFlattening: true,
-        controlFlowFlatteningThreshold: 0.75,
+        controlFlowFlattening: false,
         numbersToExpressions: true,
         simplify: true,
         // Tailwind class string'lerini bozmamak için kapalı
