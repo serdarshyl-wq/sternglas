@@ -27,6 +27,7 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
 
     const lockScroll = () => {
         scrollLockY.current = window.scrollY
+        document.documentElement.style.overflowY = 'scroll'
         document.body.style.position = 'fixed'
         document.body.style.top = `-${scrollLockY.current}px`
         document.body.style.left = '0'
@@ -38,6 +39,7 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         document.body.style.top = ''
         document.body.style.left = ''
         document.body.style.right = ''
+        document.documentElement.style.overflowY = ''
         window.scrollTo(0, scrollLockY.current)
     }
 
@@ -60,17 +62,17 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         const isMobile = window.matchMedia('(max-width: 767px)').matches
         const isTablet = window.matchMedia('(min-width: 768px) and (max-width: 1280px)').matches
         if (isMobile) {
-            gsap.set(img1Ref.current, { left: '50%', x: 0, xPercent: -50, scale: 1, opacity: 1 })
-            gsap.set(img2Ref.current, { left: '150%', x: 0, xPercent: -50, scale: 1, opacity: 1 })
-            gsap.set(img3Ref.current, { left: '150%', x: 0, xPercent: -50, scale: 1, opacity: 1 })
+            gsap.set(img1Ref.current, { left: '50%', x: 0, xPercent: -50, scale: 1, opacity: 1, zIndex: 5 })
+            gsap.set(img2Ref.current, { left: '150%', x: 0, xPercent: -50, scale: 1, opacity: 1, zIndex: 30 })
+            gsap.set(img3Ref.current, { left: '150%', x: 0, xPercent: -50, scale: 1, opacity: 1, zIndex: 30 })
         } else if (isTablet) {
-            gsap.set(img1Ref.current, { left: '50%', x: 0, xPercent: -50, scale: 1, opacity: 1 })
-            gsap.set(img2Ref.current, { left: '85%', x: 0, xPercent: -50, scale: 0.8, opacity: 1 })
-            gsap.set(img3Ref.current, { left: '115%', x: 0, xPercent: -50, scale: 0.8, opacity: 1 })
+            gsap.set(img1Ref.current, { left: '50%', x: 0, xPercent: -50, scale: 1, opacity: 1, zIndex: 5 })
+            gsap.set(img2Ref.current, { left: '85%', x: 0, xPercent: -50, scale: 0.8, opacity: 1, zIndex: 30 })
+            gsap.set(img3Ref.current, { left: '115%', x: 0, xPercent: -50, scale: 0.8, opacity: 1, zIndex: 30 })
         } else {
-            gsap.set(img1Ref.current, { left: '50%', x: 0, xPercent: -50, scale: 1, opacity: 1 })
-            gsap.set(img2Ref.current, { left: '80%', x: 0, xPercent: -50, scale: 0.65, opacity: 1 })
-            gsap.set(img3Ref.current, { left: '110%', x: 0, xPercent: -50, scale: 0.65, opacity: 1 })
+            gsap.set(img1Ref.current, { left: '50%', x: 0, xPercent: -50, scale: 1, opacity: 1, zIndex: 5 })
+            gsap.set(img2Ref.current, { left: '80%', x: 0, xPercent: -50, scale: 0.65, opacity: 1, zIndex: 30 })
+            gsap.set(img3Ref.current, { left: '110%', x: 0, xPercent: -50, scale: 0.65, opacity: 1, zIndex: 30 })
         }
     }
 
@@ -138,10 +140,10 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         const tl = gsap.timeline({
             onComplete: () => {
                 unlockScroll()
-                resetPositions(nextIdx)
                 indexRef.current = nextIdx
-                setCurrentIndex(nextIdx)
+                resetPositions(nextIdx)
                 animatingRef.current = false
+                setCurrentIndex(nextIdx)
             }
         })
 
@@ -225,20 +227,10 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         const tl = gsap.timeline({
             onComplete: () => {
                 unlockScroll()
-
-                if (!isMobile) {
-                    // img3 merkeze gelmiş durumda — img1'e kopyala, img3'ü sıfırla
-                    const img1El = img1Ref.current?.querySelector('img')
-                    const img3El = img3Ref.current?.querySelector('img')
-                    if (img1El && img3El) img1El.src = img3El.src
-                    gsap.set(img1Ref.current, { left: '50%', x: 0, xPercent: -50, scale: 1, opacity: 1, zIndex: 5 })
-                    gsap.set(img3Ref.current, { left: '110%', x: 0, xPercent: -50, scale: 0.65, opacity: 1, zIndex: 30 })
-                }
-
-                resetPositions(prevIdx)
                 indexRef.current = prevIdx
-                setCurrentIndex(prevIdx)
+                resetPositions(prevIdx)
                 animatingRef.current = false
+                setCurrentIndex(prevIdx)
             }
         })
 
@@ -263,22 +255,27 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
                 scrollCtxRef.current = null
             }
 
-            // img3'ün görselini prev ürünüyle değiştir (img3 ekran dışında, güvenli)
+            // img3 mevcut ürünün yerine geçer (merkezde kalır)
             const img3El = img3Ref.current.querySelector('img')
-            if (img3El) img3El.src = heroProducts[prevIdx].image
+            if (img3El) img3El.src = heroProducts[indexRef.current].image
+            gsap.set(img3Ref.current, { left: '50%', xPercent: -50, scale: 1, zIndex: 5 })
 
-            // img3: sol shape'in arkasından merkeze gelir
-            gsap.set(img3Ref.current, { left: '15%', xPercent: -50, scale: prevScale, zIndex: 10 })
-            tl.to(img3Ref.current, {
-                left: '50%', scale: 1, zIndex: 30, duration: 0.8, ease: 'power2.inOut'
+            // img1 sol shape'in arkasına gider, prev ürünü yüklenir
+            gsap.set(img1Ref.current, { left: '15%', xPercent: -50, scale: prevScale, zIndex: 10 })
+            const img1El = img1Ref.current.querySelector('img')
+            if (img1El) img1El.src = heroProducts[prevIdx].image
+
+            // img1 (prev) soldan merkeze gelir
+            tl.to(img1Ref.current, {
+                left: '50%', scale: 1, duration: 0.8, ease: 'power2.inOut'
             }, 0)
 
-            tl.fromTo(img1Ref.current,
-                { left: '50%', scale: 1 },
-                { left: prevLeft, scale: prevScale, duration: 0.8, ease: 'power2.inOut' },
-                0
-            )
+            // img3 (mevcut) sağa kayar
+            tl.to(img3Ref.current, {
+                left: prevLeft, scale: prevScale, duration: 0.8, ease: 'power2.inOut'
+            }, 0)
 
+            // img2 ekran dışına çıkar
             tl.to(img2Ref.current, {
                 left: '150%', duration: 0.8, ease: 'power2.inOut'
             }, 0)
