@@ -209,6 +209,18 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         const tl = gsap.timeline({
             onComplete: () => {
                 document.body.style.overflow = ''
+
+                if (!isMobile) {
+                    // img3 şu an merkeze gelmiş durumda (prev ürün görseli ile).
+                    // Önce img1'e img3'ün src'sini kopyala ve img1'i merkeze al,
+                    // sonra img3'ü temizle — böylece resetPositions swap sırasında flash olmaz.
+                    const img1El = img1Ref.current?.querySelector('img')
+                    const img3El = img3Ref.current?.querySelector('img')
+                    if (img1El && img3El) img1El.src = img3El.src
+                    gsap.set(img1Ref.current, { left: '50%', x: 0, xPercent: -50, scale: 1, opacity: 1, zIndex: 5 })
+                    gsap.set(img3Ref.current, { left: '110%', x: 0, xPercent: -50, scale: 0.65, opacity: 1, zIndex: 30 })
+                }
+
                 resetPositions(prevIdx)
                 setCurrentIndex(prevIdx)
                 animatingRef.current = false
