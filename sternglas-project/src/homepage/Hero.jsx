@@ -63,12 +63,17 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         })
     }, [getTargetProps])
 
-    // ScrollTrigger: mevcut ürünü pinle
-    const setupScrollTrigger = useCallback((currentIndex) => {
+    // ScrollTrigger: mevcut ürünü pinle (gsap.context KULLANMA — stil kayıt/revert sorunu yapar)
+    const killScrollTrigger = useCallback(() => {
         if (scrollCtxRef.current) {
-            scrollCtxRef.current.revert()
+            if (scrollCtxRef.current.tl) scrollCtxRef.current.tl.kill()
+            if (scrollCtxRef.current.st) scrollCtxRef.current.st.kill(true)
             scrollCtxRef.current = null
         }
+    }, [])
+
+    const setupScrollTrigger = useCallback((currentIndex) => {
+        killScrollTrigger()
 
         const curEl = productRefs.current[currentIndex]
         if (!curEl) return
@@ -76,32 +81,29 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         const device = getDevice()
 
         if (device === 'mobile') {
-            const ctx = gsap.context(() => {
-                ScrollTrigger.create({
+            const st = ScrollTrigger.create({
+                trigger: sectionRef.current,
+                start: 'top top',
+                end: 'bottom top',
+                pin: curEl,
+                pinSpacing: false
+            })
+            scrollCtxRef.current = { st, tl: null }
+        } else {
+            const tl = gsap.timeline({
+                scrollTrigger: {
                     trigger: sectionRef.current,
                     start: 'top top',
                     end: 'bottom top',
+                    scrub: true,
                     pin: curEl,
                     pinSpacing: false
-                })
-            }, sectionRef)
-            scrollCtxRef.current = ctx
-        } else {
-            const ctx = gsap.context(() => {
-                gsap.timeline({
-                    scrollTrigger: {
-                        trigger: sectionRef.current,
-                        start: 'top top',
-                        end: 'bottom top',
-                        scrub: true,
-                        pin: curEl,
-                        pinSpacing: false
-                    }
-                }).fromTo(curEl, { x: '0vw' }, { x: '10vw', duration: 1, ease: 'none' })
-            }, sectionRef)
-            scrollCtxRef.current = ctx
+                }
+            })
+            tl.fromTo(curEl, { x: '0vw' }, { x: '10vw', duration: 1, ease: 'none' })
+            scrollCtxRef.current = { st: tl.scrollTrigger, tl }
         }
-    }, [])
+    }, [killScrollTrigger])
 
     const lockScroll = () => {
         scrollLockY.current = window.scrollY
@@ -135,26 +137,40 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
 
         setupScrollTrigger(idx)
 
-        return () => {
-            if (scrollCtxRef.current) { scrollCtxRef.current.revert(); scrollCtxRef.current = null }
-        }
-    }, [snapAllPositions, setupScrollTrigger])
+        return () => killScrollTrigger()
+    }, [snapAllPositions, setupScrollTrigger, killScrollTrigger])
+
+    // Merkez hariç tüm elementleri doğru pozisyona snap'le
+    const snapNonCenter = useCallback((currentIndex) => {
+        const device = getDevice()
+        heroProducts.forEach((_, i) => {
+            if (i === currentIndex) return
+            const el = productRefs.current[i]
+            if (!el) return
+            const props = getTargetProps(i, currentIndex, device)
+            gsap.set(el, { ...props, x: 0 })
+        })
+    }, [getTargetProps])
 
     // Geçiş tamamlandığında çağrılır
     const finishTransition = (newIdx) => {
         unlockScroll()
         indexRef.current = newIdx
 
-        // Önce ScrollTrigger kur (sadece center element'i pin'ler)
-        setupScrollTrigger(newIdx)
+        // Merkez element zaten animasyondan doğru pozisyonda — ona dokunma
+        // Sadece diğer elementleri snap'le
+        snapNonCenter(newIdx)
 
-        // Sonra tüm pozisyonları snap — ScrollTrigger'ın olası stil müdahalesini ezecek
-        snapAllPositions(newIdx)
+        // ScrollTrigger'u kur (merkez elementi pin'ler)
+        setupScrollTrigger(newIdx)
 
         // State güncelle
         animatingRef.current = false
         setDisplayIndex(newIdx)
         setActiveProductIndex(newIdx)
+
+        // React re-render sonrası güvenlik: merkez hariç pozisyonları tekrar uygula
+        requestAnimationFrame(() => snapNonCenter(newIdx))
     }
 
     // ====== NEXT ======
