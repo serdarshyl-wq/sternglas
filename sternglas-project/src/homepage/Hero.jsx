@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect } from 'react'
+import { useState, useRef, useLayoutEffect, useCallback } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -18,28 +18,89 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
     const scrollCtxRef = useRef(null)
 
     const sectionRef = useRef(null)
-    const img1Ref = useRef(null)
-    const img2Ref = useRef(null)
-    const img3Ref = useRef(null)
+    const productRefs = useRef([])
     const bgRef = useRef(null)
     const contentRef = useRef(null)
     const priceRef = useRef(null)
     const mobilePriceRef = useRef(null)
 
-    // Roller: [current, next, afterNext] → container index (0=img1, 1=img2, 2=img3)
-    const rolesRef = useRef([0, 1, 2])
-
-    const allRefs = () => [img1Ref, img2Ref, img3Ref]
-    const refByRole = (role) => allRefs()[rolesRef.current[role]]
-
-    const setImgSrc = (ref, src) => {
-        const el = ref.current?.querySelector('img')
-        if (el) el.src = src
+    const getDevice = () => {
+        if (window.matchMedia('(max-width: 767px)').matches) return 'mobile'
+        if (window.matchMedia('(min-width: 768px) and (max-width: 1280px)').matches) return 'tablet'
+        return 'desktop'
     }
 
-    // Tüm görselleri mount'ta browser cache'e yükle
-    useLayoutEffect(() => {
-        heroProducts.forEach(p => { const i = new Image(); i.src = p.image })
+    // Her index için hedef pozisyon hesapla (currentIndex'e göre)
+    const getTargetProps = useCallback((index, currentIndex, device) => {
+        const rel = (index - currentIndex + TOTAL) % TOTAL
+
+        if (device === 'mobile') {
+            if (rel === 0) return { left: '50%', xPercent: -50, scale: 1, opacity: 1, zIndex: 5 }
+            if (rel === 1) return { left: '150%', xPercent: -50, scale: 1, opacity: 1, zIndex: 30 }
+            if (rel === TOTAL - 1) return { left: '-50%', xPercent: -50, scale: 1, opacity: 1, zIndex: 30 }
+            return { left: '200%', xPercent: -50, scale: 1, opacity: 0, zIndex: 1 }
+        }
+
+        const previewScale = device === 'tablet' ? 0.8 : 0.65
+        const nextLeft = device === 'tablet' ? '85%' : '80%'
+        const afterLeft = device === 'tablet' ? '115%' : '110%'
+
+        if (rel === 0) return { left: '50%', xPercent: -50, scale: 1, opacity: 1, zIndex: 5 }
+        if (rel === 1) return { left: nextLeft, xPercent: -50, scale: previewScale, opacity: 1, zIndex: 30 }
+        if (rel === 2) return { left: afterLeft, xPercent: -50, scale: previewScale, opacity: 1, zIndex: 30 }
+        if (rel === TOTAL - 1) return { left: '15%', xPercent: -50, scale: previewScale, opacity: 0, zIndex: 10 }
+        return { left: '200%', xPercent: -50, scale: previewScale, opacity: 0, zIndex: 1 }
+    }, [])
+
+    // Tüm ürünleri hedef pozisyonlarına anında yerleştir
+    const snapAllPositions = useCallback((currentIndex) => {
+        const device = getDevice()
+        heroProducts.forEach((_, i) => {
+            const el = productRefs.current[i]
+            if (!el) return
+            const props = getTargetProps(i, currentIndex, device)
+            gsap.set(el, { ...props, x: 0 })
+        })
+    }, [getTargetProps])
+
+    // ScrollTrigger: mevcut ürünü pinle
+    const setupScrollTrigger = useCallback((currentIndex) => {
+        if (scrollCtxRef.current) {
+            scrollCtxRef.current.revert()
+            scrollCtxRef.current = null
+        }
+
+        const curEl = productRefs.current[currentIndex]
+        if (!curEl) return
+
+        const device = getDevice()
+
+        if (device === 'mobile') {
+            const ctx = gsap.context(() => {
+                ScrollTrigger.create({
+                    trigger: sectionRef.current,
+                    start: 'top top',
+                    end: 'bottom top',
+                    pin: curEl,
+                    pinSpacing: false
+                })
+            }, sectionRef)
+            scrollCtxRef.current = ctx
+        } else {
+            const ctx = gsap.context(() => {
+                gsap.timeline({
+                    scrollTrigger: {
+                        trigger: sectionRef.current,
+                        start: 'top top',
+                        end: 'bottom top',
+                        scrub: true,
+                        pin: curEl,
+                        pinSpacing: false
+                    }
+                }).fromTo(curEl, { x: '0vw' }, { x: '10vw', duration: 1, ease: 'none' })
+            }, sectionRef)
+            scrollCtxRef.current = ctx
+        }
     }, [])
 
     const lockScroll = () => {
@@ -60,116 +121,35 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         window.scrollTo(0, scrollLockY.current)
     }
 
-    const getDevice = () => {
-        if (window.matchMedia('(max-width: 767px)').matches) return 'mobile'
-        if (window.matchMedia('(min-width: 768px) and (max-width: 1280px)').matches) return 'tablet'
-        return 'desktop'
-    }
-
-    const getPreviewProps = (device) => ({
-        scale: device === 'tablet' ? 0.8 : 0.65,
-        nextLeft: device === 'tablet' ? '85%' : '80%',
-        afterLeft: device === 'tablet' ? '115%' : '110%'
-    })
-
-    // Z-index ve pointer-events güncelle
-    const updateContainerStyles = () => {
-        const cur = refByRole(0).current
-        const nxt = refByRole(1).current
-        const aft = refByRole(2).current
-        if (!cur || !nxt || !aft) return
-
-        gsap.set(cur, { zIndex: 5 })
-        gsap.set(nxt, { zIndex: 30 })
-        gsap.set(aft, { zIndex: 30 })
-
-        cur.style.pointerEvents = 'auto'
-        nxt.style.pointerEvents = 'none'
-        aft.style.pointerEvents = 'none'
-        const nxtImg = nxt.querySelector('img')
-        const aftImg = aft.querySelector('img')
-        if (nxtImg) nxtImg.style.pointerEvents = 'auto'
-        if (aftImg) aftImg.style.pointerEvents = 'auto'
-    }
-
-    // ScrollTrigger'ı yeniden oluştur (current container pin)
-    const setupScrollTrigger = () => {
-        if (scrollCtxRef.current) {
-            scrollCtxRef.current.revert()
-            scrollCtxRef.current = null
-        }
-        const device = getDevice()
-        const cur = refByRole(0)
-
-        if (device === 'mobile') {
-            const ctx = gsap.context(() => {
-                ScrollTrigger.create({
-                    trigger: sectionRef.current,
-                    start: 'top top',
-                    end: 'bottom top',
-                    pin: cur.current,
-                    pinSpacing: false
-                })
-            }, sectionRef)
-            scrollCtxRef.current = ctx
-        } else {
-            const ctx = gsap.context(() => {
-                gsap.timeline({
-                    scrollTrigger: {
-                        trigger: sectionRef.current,
-                        start: 'top top',
-                        end: 'bottom top',
-                        scrub: true,
-                        pin: cur.current,
-                        pinSpacing: false
-                    }
-                }).fromTo(cur.current, { x: '0vw' }, { x: '10vw', duration: 1, ease: 'none' })
-            }, sectionRef)
-            scrollCtxRef.current = ctx
-        }
-    }
-
-    // Mount: pozisyon + src + ScrollTrigger
+    // İlk mount: pozisyon + ScrollTrigger
     useLayoutEffect(() => {
-        if (!img1Ref.current || !img2Ref.current || !img3Ref.current) return
+        if (productRefs.current.length === 0) return
 
-        const device = getDevice()
-        const { scale, nextLeft, afterLeft } = getPreviewProps(device)
         const idx = indexRef.current
-
-        // Görselleri yükle
-        setImgSrc(refByRole(0), heroProducts[idx].image)
-        setImgSrc(refByRole(1), heroProducts[(idx + 1) % TOTAL].image)
-        setImgSrc(refByRole(2), heroProducts[(idx + 2) % TOTAL].image)
-
-        // Pozisyonlar
-        gsap.set(refByRole(0).current, { left: '50%', x: 0, xPercent: -50, scale: 1, opacity: 1 })
-
-        if (device === 'mobile') {
-            gsap.set(refByRole(1).current, { left: '150%', x: 0, xPercent: -50, scale: 1, opacity: 1 })
-            gsap.set(refByRole(2).current, { left: '150%', x: 0, xPercent: -50, scale: 1, opacity: 1 })
-        } else {
-            gsap.set(refByRole(1).current, { left: nextLeft, x: 0, xPercent: -50, scale, opacity: 1 })
-            gsap.set(refByRole(2).current, { left: afterLeft, x: 0, xPercent: -50, scale, opacity: 1 })
-        }
-
-        updateContainerStyles()
+        snapAllPositions(idx)
 
         if (contentRef.current) gsap.set(contentRef.current, { x: 0, opacity: 1 })
         if (priceRef.current) gsap.set(priceRef.current, { x: 0, opacity: 1 })
         if (mobilePriceRef.current) gsap.set(mobilePriceRef.current, { x: 0, opacity: 1 })
         if (bgRef.current) bgRef.current.style.backgroundColor = heroProducts[idx].leatherColor
 
-        setupScrollTrigger()
+        setupScrollTrigger(idx)
 
         return () => {
             if (scrollCtxRef.current) { scrollCtxRef.current.revert(); scrollCtxRef.current = null }
         }
-    }, [])
+    }, [snapAllPositions, setupScrollTrigger])
 
-    // Img tıklanınca sadece "next" rolündeki container tetikler
-    const handleImgClick = (containerIdx) => {
-        if (containerIdx === rolesRef.current[1]) goToNext()
+    // Geçiş tamamlandığında çağrılır
+    const finishTransition = (newIdx) => {
+        unlockScroll()
+        // Tüm pozisyonları snap (GSAP inline artıklarını temizle)
+        snapAllPositions(newIdx)
+        indexRef.current = newIdx
+        animatingRef.current = false
+        setDisplayIndex(newIdx)
+        setActiveProductIndex(newIdx)
+        setupScrollTrigger(newIdx)
     }
 
     // ====== NEXT ======
@@ -180,51 +160,30 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
 
         const nextIdx = (indexRef.current + 1) % TOTAL
         const device = getDevice()
-        const { scale, nextLeft } = getPreviewProps(device)
 
+        // Animasyon öncesi ScrollTrigger'ı kaldır
         if (scrollCtxRef.current) { scrollCtxRef.current.revert(); scrollCtxRef.current = null }
 
-        const cur = refByRole(0)
-        const nxt = refByRole(1)
-        const aft = refByRole(2)
+        const tl = gsap.timeline({ onComplete: () => finishTransition(nextIdx) })
 
-        const tl = gsap.timeline({
-            onComplete: () => {
-                unlockScroll()
+        // Her ürünü yeni hedef pozisyonuna anime et
+        heroProducts.forEach((_, i) => {
+            const el = productRefs.current[i]
+            if (!el) return
+            const target = getTargetProps(i, nextIdx, device)
 
-                // Rolleri döndür: next→current, afterNext→next, current→afterNext
-                const [c, n, a] = rolesRef.current
-                rolesRef.current = [n, a, c]
+            // Sadece görünen veya görünür olacak öğeleri anime et
+            const relOld = (i - indexRef.current + TOTAL) % TOTAL
+            const relNew = (i - nextIdx + TOTAL) % TOTAL
+            const isRelevant = relOld <= 2 || relNew <= 2
 
-                // Eski current (artık afterNext) → ekran dışı, yeni görsel
-                const oldCur = allRefs()[c]
-                setImgSrc(oldCur, heroProducts[(nextIdx + 2) % TOTAL].image)
-
-                if (device === 'mobile') {
-                    gsap.set(oldCur.current, { left: '150%', x: 0, xPercent: -50, scale: 1, opacity: 1 })
-                } else {
-                    const afterLeft = device === 'tablet' ? '115%' : '110%'
-                    gsap.set(oldCur.current, { left: afterLeft, x: 0, xPercent: -50, scale, opacity: 1 })
-                }
-
-                updateContainerStyles()
-                indexRef.current = nextIdx
-                animatingRef.current = false
-                setDisplayIndex(nextIdx)
-                setActiveProductIndex(nextIdx)
-                setupScrollTrigger()
+            if (isRelevant) {
+                const dur = device === 'mobile' ? 0.6 : 0.8
+                tl.to(el, { left: target.left, scale: target.scale, opacity: target.opacity, zIndex: target.zIndex, duration: dur, ease: 'power2.inOut' }, 0)
+            } else {
+                gsap.set(el, { ...target, x: 0 })
             }
         })
-
-        // Görsel animasyonları
-        if (device === 'mobile') {
-            tl.fromTo(cur.current, { left: '50%' }, { left: '-50%', duration: 0.6, ease: 'power2.inOut' }, 0)
-            tl.fromTo(nxt.current, { left: '150%' }, { left: '50%', duration: 0.6, ease: 'power2.inOut' }, 0)
-        } else {
-            tl.fromTo(cur.current, { left: '50%', scale: 1 }, { left: '20%', scale, duration: 0.8, ease: 'power2.inOut' }, 0)
-            tl.to(nxt.current, { left: '50%', scale: 1, duration: 0.8, ease: 'power2.inOut' }, 0)
-            tl.to(aft.current, { left: nextLeft, scale, duration: 0.8, ease: 'power2.inOut' }, 0)
-        }
 
         // Arka plan
         tl.to(bgRef.current, {
@@ -268,58 +227,41 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
 
         const prevIdx = (indexRef.current - 1 + TOTAL) % TOTAL
         const device = getDevice()
-        const { scale, nextLeft } = getPreviewProps(device)
 
         if (scrollCtxRef.current) { scrollCtxRef.current.revert(); scrollCtxRef.current = null }
 
-        const cur = refByRole(0)
-        const nxt = refByRole(1)
-        const aft = refByRole(2)
-
-        // afterNext container'a prev ürünü yükle (ekran dışında, kullanıcı görmez)
-        setImgSrc(aft, heroProducts[prevIdx].image)
-
-        if (device === 'mobile') {
-            gsap.set(aft.current, { left: '-50%', xPercent: -50, scale: 1 })
-        } else {
-            gsap.set(aft.current, { left: '15%', xPercent: -50, scale, zIndex: 10 })
+        // Prev ürünü animasyondan önce sol tarafa konumlandır (görünmez)
+        const prevEl = productRefs.current[prevIdx]
+        if (prevEl) {
+            const startProps = getTargetProps(prevIdx, indexRef.current, device)
+            // Sol dışına yerleştir
+            if (device === 'mobile') {
+                gsap.set(prevEl, { left: '-50%', xPercent: -50, scale: 1, opacity: 1, zIndex: 30, x: 0 })
+            } else {
+                const previewScale = device === 'tablet' ? 0.8 : 0.65
+                gsap.set(prevEl, { left: '15%', xPercent: -50, scale: previewScale, opacity: 1, zIndex: 10, x: 0 })
+            }
         }
 
-        const tl = gsap.timeline({
-            onComplete: () => {
-                unlockScroll()
+        const tl = gsap.timeline({ onComplete: () => finishTransition(prevIdx) })
 
-                // Rolleri döndür: afterNext→current, current→next, next→afterNext
-                const [c, n, a] = rolesRef.current
-                rolesRef.current = [a, c, n]
+        // Her ürünü yeni hedef pozisyonuna anime et
+        heroProducts.forEach((_, i) => {
+            const el = productRefs.current[i]
+            if (!el) return
+            const target = getTargetProps(i, prevIdx, device)
 
-                // Eski next (artık afterNext) zaten doğru görsele sahip — pozisyonla
-                const oldNxt = allRefs()[n]
-                if (device === 'mobile') {
-                    gsap.set(oldNxt.current, { left: '150%', x: 0, xPercent: -50, scale: 1, opacity: 1 })
-                } else {
-                    const afterLeft = device === 'tablet' ? '115%' : '110%'
-                    gsap.set(oldNxt.current, { left: afterLeft, x: 0, xPercent: -50, scale, opacity: 1 })
-                }
+            const relOld = (i - indexRef.current + TOTAL) % TOTAL
+            const relNew = (i - prevIdx + TOTAL) % TOTAL
+            const isRelevant = relOld <= 2 || relNew <= 2 || i === prevIdx
 
-                updateContainerStyles()
-                indexRef.current = prevIdx
-                animatingRef.current = false
-                setDisplayIndex(prevIdx)
-                setActiveProductIndex(prevIdx)
-                setupScrollTrigger()
+            if (isRelevant) {
+                const dur = device === 'mobile' ? 0.6 : 0.8
+                tl.to(el, { left: target.left, scale: target.scale, opacity: target.opacity, zIndex: target.zIndex, duration: dur, ease: 'power2.inOut' }, 0)
+            } else {
+                gsap.set(el, { ...target, x: 0 })
             }
         })
-
-        // Görsel animasyonları
-        if (device === 'mobile') {
-            tl.fromTo(cur.current, { left: '50%' }, { left: '150%', duration: 0.6, ease: 'power2.inOut' }, 0)
-            tl.fromTo(aft.current, { left: '-50%' }, { left: '50%', duration: 0.6, ease: 'power2.inOut' }, 0)
-        } else {
-            tl.to(aft.current, { left: '50%', scale: 1, duration: 0.8, ease: 'power2.inOut' }, 0)
-            tl.to(cur.current, { left: nextLeft, scale, duration: 0.8, ease: 'power2.inOut' }, 0)
-            tl.to(nxt.current, { left: '150%', duration: 0.8, ease: 'power2.inOut' }, 0)
-        }
 
         // Arka plan
         tl.to(bgRef.current, {
@@ -359,17 +301,26 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         <section ref={sectionRef} className="hero-section w-full relative overflow-x-hidden h-screen" style={{ zIndex: 10 }}>
             <div ref={bgRef} className="absolute inset-0 z-0" />
 
-            <div ref={img1Ref} className="hero-img-container absolute top-0 h-full flex items-center justify-center">
-                <img alt="product" className="hero-product-img object-contain cursor-pointer" onClick={() => handleImgClick(0)} />
-            </div>
-
-            <div ref={img2Ref} className="hero-img-container absolute top-0 h-full flex items-center justify-center">
-                <img alt="product" className="hero-product-img object-contain cursor-pointer" onClick={() => handleImgClick(1)} />
-            </div>
-
-            <div ref={img3Ref} className="hero-img-container absolute top-0 h-full flex items-center justify-center">
-                <img alt="product" className="hero-product-img object-contain cursor-pointer" onClick={() => handleImgClick(2)} />
-            </div>
+            {heroProducts.map((product, index) => {
+                const isCurrent = index === displayIndex
+                const isNext = index === (displayIndex + 1) % TOTAL
+                return (
+                    <div
+                        key={product.id}
+                        ref={el => (productRefs.current[index] = el)}
+                        className="hero-img-container absolute top-0 h-full flex items-center justify-center"
+                        style={{ pointerEvents: isCurrent ? 'auto' : 'none' }}
+                    >
+                        <img
+                            src={product.image}
+                            alt={product.title}
+                            className="hero-product-img object-contain cursor-pointer"
+                            style={{ pointerEvents: (isNext || !isCurrent) ? 'auto' : 'auto' }}
+                            onClick={isNext ? goToNext : undefined}
+                        />
+                    </div>
+                )
+            })}
 
             <div className="hero-panel-left absolute left-0 top-0 h-full w-[40%] bg-white hero-shape-left" style={{ zIndex: 20 }}>
                 <div ref={contentRef} className="flex flex-col justify-center items-center text-center h-full px-[15%]">
