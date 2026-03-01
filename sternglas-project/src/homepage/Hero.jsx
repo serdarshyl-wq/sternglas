@@ -155,17 +155,6 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         animatingRef.current = false
         setDisplayIndex(newIdx)
         setActiveProductIndex(newIdx)
-
-        // React re-render sonrası güvenlik: pozisyonları tekrar uygula
-        requestAnimationFrame(() => {
-            heroProducts.forEach((_, i) => {
-                if (i === newIdx) return // Pinli merkez element'e dokunma
-                const el = productRefs.current[i]
-                if (!el) return
-                const props = getTargetProps(i, newIdx, getDevice())
-                gsap.set(el, { ...props, x: 0 })
-            })
-        })
     }
 
     // ====== NEXT ======
