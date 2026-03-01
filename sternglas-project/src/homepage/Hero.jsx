@@ -9,11 +9,10 @@ import './Hero.css'
 gsap.registerPlugin(ScrollTrigger)
 
 function Hero({ activeProductIndex, setActiveProductIndex }) {
-    const currentIndex = activeProductIndex
     const setCurrentIndex = setActiveProductIndex
     const [displayIndex, setDisplayIndex] = useState(0)
-    const indexRef = useRef(currentIndex)
-    indexRef.current = currentIndex
+    const indexRef = useRef(activeProductIndex)
+    indexRef.current = activeProductIndex
 
     const sectionRef = useRef(null)
     const img1Ref = useRef(null)
@@ -21,7 +20,6 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
     const img3Ref = useRef(null)
     const bgRef = useRef(null)
     const contentRef = useRef(null)
-    const rightPanelRef = useRef(null)
     const priceRef = useRef(null)
     const mobilePriceRef = useRef(null)
     const scrollCtxRef = useRef(null)
@@ -44,21 +42,21 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         window.scrollTo(0, scrollLockY.current)
     }
 
-    const current = heroProducts[currentIndex]
-
-    // DOM üzerinden img src + pozisyon sıfırlama (React render'dan bağımsız, flash önler)
+    // DOM üzerinden img src + pozisyon sıfırlama (React render'dan bağımsız)
     const resetPositions = (newIndex) => {
         const newCurrent = heroProducts[newIndex]
         const newNext = heroProducts[(newIndex + 1) % heroProducts.length]
         const newAfterNext = heroProducts[(newIndex + 2) % heroProducts.length]
 
-        // Görselleri DOM üzerinden güncelle (React render beklemeden)
         const img1El = img1Ref.current?.querySelector('img')
         const img2El = img2Ref.current?.querySelector('img')
         const img3El = img3Ref.current?.querySelector('img')
         if (img1El) img1El.src = newCurrent.image
         if (img2El) img2El.src = newNext.image
         if (img3El) img3El.src = newAfterNext.image
+
+        // Arka plan rengini de DOM üzerinden güncelle
+        if (bgRef.current) bgRef.current.style.backgroundColor = newCurrent.leatherColor
 
         const isMobile = window.matchMedia('(max-width: 767px)').matches
         const isTablet = window.matchMedia('(min-width: 768px) and (max-width: 1280px)').matches
@@ -77,20 +75,21 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         }
     }
 
-    // Her index değişiminde pozisyonları sıfırla
+    // Pozisyon sıfırlama + ScrollTrigger kurulumu (tek useLayoutEffect)
     useLayoutEffect(() => {
         if (!img1Ref.current || !img2Ref.current || !img3Ref.current) return
-        resetPositions(currentIndex)
+        // Animasyon devam ediyorsa pozisyonları sıfırlama — onComplete halledecek
+        if (animatingRef.current) return
+
+        resetPositions(activeProductIndex)
         if (contentRef.current) gsap.set(contentRef.current, { x: 0, opacity: 1 })
         if (priceRef.current) gsap.set(priceRef.current, { x: 0, opacity: 1 })
         if (mobilePriceRef.current) gsap.set(mobilePriceRef.current, { x: 0, opacity: 1 })
-    }, [currentIndex])
 
-    useLayoutEffect(() => {
+        // ScrollTrigger kurulumu
         const isMobile = window.matchMedia('(max-width: 767px)').matches
 
         if (isMobile) {
-            // Mobil: ürün pinlenir ve üstte sabit kalır (aşağı kaymaz)
             const ctx = gsap.context(() => {
                 ScrollTrigger.create({
                     trigger: sectionRef.current,
@@ -116,17 +115,15 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
                     pinSpacing: false
                 }
             })
-
             tl.fromTo(img1Ref.current,
                 { x: '0vw' },
                 { x: '10vw', duration: 1, ease: 'none' }
             )
-
         }, sectionRef)
         scrollCtxRef.current = ctx
 
         return () => ctx.revert()
-    }, [currentIndex])
+    }, [activeProductIndex])
 
     const goToNext = () => {
         if (animatingRef.current) return
@@ -231,9 +228,7 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
                 unlockScroll()
 
                 if (!isMobile) {
-                    // img3 şu an merkeze gelmiş durumda (prev ürün görseli ile).
-                    // Önce img1'e img3'ün src'sini kopyala ve img1'i merkeze al,
-                    // sonra img3'ü temizle — böylece resetPositions swap sırasında flash olmaz.
+                    // img3 merkeze gelmiş durumda — img1'e kopyala, img3'ü sıfırla
                     const img1El = img1Ref.current?.querySelector('img')
                     const img3El = img3Ref.current?.querySelector('img')
                     if (img1El && img3El) img1El.src = img3El.src
@@ -263,7 +258,6 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
                 0
             )
         } else {
-            // Desktop & Tablet: reverse of goToNext
             // ScrollTrigger'ı kill et (scale animasyonuyla çakışmasın)
             if (scrollCtxRef.current) {
                 scrollCtxRef.current.revert()
@@ -314,7 +308,6 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
                 x: 0, duration: 0.3, ease: 'power2.out'
             }, 0.3)
         } else {
-            // Desktop/Tablet: text ve price sağa kayar, soldan girer
             tl.to(contentRef.current, {
                 x: 120, opacity: 0, duration: 0.4, ease: 'power2.in'
             }, 0)
@@ -338,7 +331,6 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
             <div
                 ref={bgRef}
                 className="absolute inset-0 z-0"
-                style={{ backgroundColor: current.leatherColor }}
             />
 
             <div
@@ -382,7 +374,7 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
                 </div>
             </div>
 
-            <div ref={rightPanelRef} className="hero-panel-right absolute right-0 top-0 h-full w-[40%] bg-white pointer-events-none hero-shape-right" style={{ zIndex: 2 }}>
+            <div className="hero-panel-right absolute right-0 top-0 h-full w-[40%] bg-white pointer-events-none hero-shape-right" style={{ zIndex: 2 }}>
                 <div className="hero-next-text flex flex-col items-center justify-end h-full pb-60 pointer-events-auto cursor-pointer" onClick={goToNext}>
                     <span className="text-[clamp(1.25rem,2.5vw,2rem)] uppercase tracking-[0.2em] text-black/50 mt-2.5" style={{ fontFamily: 'var(--font-ui)' }}>Next</span>
                 </div>
