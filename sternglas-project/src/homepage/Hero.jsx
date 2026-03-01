@@ -182,8 +182,10 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         const nextIdx = (indexRef.current + 1) % TOTAL
         const device = getDevice()
 
-        // Animasyon öncesi ScrollTrigger'ı kaldır
+        // Animasyon öncesi ScrollTrigger'ı kaldır ve scrub kalıntısını temizle
         killScrollTrigger()
+        const curEl = productRefs.current[indexRef.current]
+        if (curEl) gsap.set(curEl, { x: 0 })
 
         const tl = gsap.timeline({ onComplete: () => finishTransition(nextIdx) })
 
@@ -249,6 +251,8 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         const device = getDevice()
 
         killScrollTrigger()
+        const curEl = productRefs.current[indexRef.current]
+        if (curEl) gsap.set(curEl, { x: 0 })
 
         // Prev ürünü animasyondan önce sol tarafa konumlandır (görünmez)
         const prevEl = productRefs.current[prevIdx]
