@@ -35,21 +35,21 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         const rel = (index - currentIndex + TOTAL) % TOTAL
 
         if (device === 'mobile') {
-            if (rel === 0) return { left: '50%', xPercent: -50, scale: 1, opacity: 1, zIndex: 5 }
-            if (rel === 1) return { left: '150%', xPercent: -50, scale: 1, opacity: 1, zIndex: 30 }
-            if (rel === TOTAL - 1) return { left: '-50%', xPercent: -50, scale: 1, opacity: 1, zIndex: 30 }
-            return { left: '200%', xPercent: -50, scale: 1, opacity: 0, zIndex: 1 }
+            if (rel === 0) return { left: '50%', xPercent: -50, scale: 1, zIndex: 5, pointerEvents: 'auto' }
+            if (rel === 1) return { left: '150%', xPercent: -50, scale: 1, zIndex: 30, pointerEvents: 'none' }
+            if (rel === TOTAL - 1) return { left: '-50%', xPercent: -50, scale: 1, zIndex: 30, pointerEvents: 'none' }
+            return { left: '200%', xPercent: -50, scale: 1, zIndex: 1, pointerEvents: 'none' }
         }
 
         const previewScale = device === 'tablet' ? 0.8 : 0.65
         const nextLeft = device === 'tablet' ? '85%' : '80%'
         const afterLeft = device === 'tablet' ? '115%' : '110%'
 
-        if (rel === 0) return { left: '50%', xPercent: -50, scale: 1, opacity: 1, zIndex: 5 }
-        if (rel === 1) return { left: nextLeft, xPercent: -50, scale: previewScale, opacity: 1, zIndex: 30 }
-        if (rel === 2) return { left: afterLeft, xPercent: -50, scale: previewScale, opacity: 1, zIndex: 30 }
-        if (rel === TOTAL - 1) return { left: '15%', xPercent: -50, scale: previewScale, opacity: 0, zIndex: 10 }
-        return { left: '200%', xPercent: -50, scale: previewScale, opacity: 0, zIndex: 1 }
+        if (rel === 0) return { left: '50%', xPercent: -50, scale: 1, zIndex: 5, pointerEvents: 'auto' }
+        if (rel === 1) return { left: nextLeft, xPercent: -50, scale: previewScale, zIndex: 30, pointerEvents: 'none' }
+        if (rel === 2) return { left: afterLeft, xPercent: -50, scale: previewScale, zIndex: 30, pointerEvents: 'none' }
+        if (rel === TOTAL - 1) return { left: '15%', xPercent: -50, scale: previewScale, zIndex: 10, pointerEvents: 'none' }
+        return { left: '200%', xPercent: -50, scale: previewScale, zIndex: 1, pointerEvents: 'none' }
     }, [])
 
     // Tüm ürünleri hedef pozisyonlarına anında yerleştir
@@ -167,19 +167,18 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         const tl = gsap.timeline({ onComplete: () => finishTransition(nextIdx) })
 
         // Her ürünü yeni hedef pozisyonuna anime et
+        const imgDur = device === 'mobile' ? 0.6 : 0.8
         heroProducts.forEach((_, i) => {
             const el = productRefs.current[i]
             if (!el) return
             const target = getTargetProps(i, nextIdx, device)
-
-            // Sadece görünen veya görünür olacak öğeleri anime et
             const relOld = (i - indexRef.current + TOTAL) % TOTAL
-            const relNew = (i - nextIdx + TOTAL) % TOTAL
-            const isRelevant = relOld <= 2 || relNew <= 2
 
-            if (isRelevant) {
-                const dur = device === 'mobile' ? 0.6 : 0.8
-                tl.to(el, { left: target.left, scale: target.scale, opacity: target.opacity, zIndex: target.zIndex, duration: dur, ease: 'power2.inOut' }, 0)
+            // Wrap-around: sol dışından sağ dışına atlayan öğeyi anında taşı
+            if (relOld === TOTAL - 1) {
+                gsap.set(el, { ...target, x: 0 })
+            } else if (relOld <= 2) {
+                tl.to(el, { left: target.left, scale: target.scale, zIndex: target.zIndex, duration: imgDur, ease: 'power2.inOut' }, 0)
             } else {
                 gsap.set(el, { ...target, x: 0 })
             }
@@ -245,22 +244,21 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
 
         const tl = gsap.timeline({ onComplete: () => finishTransition(prevIdx) })
 
-        // Her ürünü yeni hedef pozisyonuna anime et
+        // Wrap-around: sağ dışından sol dışına atlayan öğeyi anında taşı
+        const wrapIdx = (indexRef.current + 2) % TOTAL
+        const wrapEl = productRefs.current[wrapIdx]
+        if (wrapEl) {
+            const wrapTarget = getTargetProps(wrapIdx, prevIdx, device)
+            gsap.set(wrapEl, { ...wrapTarget, x: 0 })
+        }
+
+        // Diğer ürünleri anime et
+        const imgDur = device === 'mobile' ? 0.6 : 0.8
         heroProducts.forEach((_, i) => {
             const el = productRefs.current[i]
-            if (!el) return
+            if (!el || i === wrapIdx) return
             const target = getTargetProps(i, prevIdx, device)
-
-            const relOld = (i - indexRef.current + TOTAL) % TOTAL
-            const relNew = (i - prevIdx + TOTAL) % TOTAL
-            const isRelevant = relOld <= 2 || relNew <= 2 || i === prevIdx
-
-            if (isRelevant) {
-                const dur = device === 'mobile' ? 0.6 : 0.8
-                tl.to(el, { left: target.left, scale: target.scale, opacity: target.opacity, zIndex: target.zIndex, duration: dur, ease: 'power2.inOut' }, 0)
-            } else {
-                gsap.set(el, { ...target, x: 0 })
-            }
+            tl.to(el, { left: target.left, scale: target.scale, zIndex: target.zIndex, duration: imgDur, ease: 'power2.inOut' }, 0)
         })
 
         // Arka plan
@@ -301,26 +299,21 @@ function Hero({ activeProductIndex, setActiveProductIndex }) {
         <section ref={sectionRef} className="hero-section w-full relative overflow-x-hidden h-screen" style={{ zIndex: 10 }}>
             <div ref={bgRef} className="absolute inset-0 z-0" />
 
-            {heroProducts.map((product, index) => {
-                const isCurrent = index === displayIndex
-                const isNext = index === (displayIndex + 1) % TOTAL
-                return (
-                    <div
-                        key={product.id}
-                        ref={el => (productRefs.current[index] = el)}
-                        className="hero-img-container absolute top-0 h-full flex items-center justify-center"
-                        style={{ pointerEvents: isCurrent ? 'auto' : 'none' }}
-                    >
-                        <img
-                            src={product.image}
-                            alt={product.title}
-                            className="hero-product-img object-contain cursor-pointer"
-                            style={{ pointerEvents: (isNext || !isCurrent) ? 'auto' : 'auto' }}
-                            onClick={isNext ? goToNext : undefined}
-                        />
-                    </div>
-                )
-            })}
+            {heroProducts.map((product, index) => (
+                <div
+                    key={product.id}
+                    ref={el => (productRefs.current[index] = el)}
+                    className="hero-img-container absolute top-0 h-full flex items-center justify-center"
+                >
+                    <img
+                        src={product.image}
+                        alt={product.title}
+                        className="hero-product-img object-contain cursor-pointer"
+                        style={{ pointerEvents: 'auto' }}
+                        onClick={goToNext}
+                    />
+                </div>
+            ))}
 
             <div className="hero-panel-left absolute left-0 top-0 h-full w-[40%] bg-white hero-shape-left" style={{ zIndex: 20 }}>
                 <div ref={contentRef} className="flex flex-col justify-center items-center text-center h-full px-[15%]">
